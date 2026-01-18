@@ -6,6 +6,8 @@ import Products from '../views/manager/Products.vue';
 import Shifts from '../views/manager/Shifts.vue';
 import EmployeeProducts from '../views/employee/Products.vue';
 
+import MainLayout from '../views/MainLayout.vue';
+
 const routes = [
     {
         path: '/login',
@@ -15,27 +17,32 @@ const routes = [
     },
     {
         path: '/',
-        name: 'Dashboard',
-        component: Dashboard,
-        meta: { requiresAuth: true }
-    },
-    {
-        path: '/manager/products',
-        name: 'Products',
-        component: Products,
-        meta: { requiresAuth: true, roles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
-    },
-    {
-        path: '/manager/shifts',
-        name: 'Shifts',
-        component: Shifts,
-        meta: { requiresAuth: true, roles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
-    },
-    {
-        path: '/employee/stock',
-        name: 'EmployeeStock',
-        component: EmployeeProducts,
-        meta: { requiresAuth: true }
+        component: MainLayout,
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: '',
+                name: 'Dashboard',
+                component: Dashboard
+            },
+            {
+                path: 'manager/products',
+                name: 'Products',
+                component: Products,
+                meta: { roles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
+            },
+            {
+                path: 'manager/shifts',
+                name: 'Shifts',
+                component: Shifts,
+                meta: { roles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
+            },
+            {
+                path: 'employee/stock',
+                name: 'EmployeeStock',
+                component: EmployeeProducts
+            }
+        ]
     },
 ];
 
