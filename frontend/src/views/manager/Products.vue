@@ -16,41 +16,63 @@
       </button>
     </header>
 
-    <!-- Employee Stock Alerts -->
+    <!-- Employee Stock Alerts (Modern Checklist) -->
     <transition name="fade">
-        <div v-if="pendingAlerts.length > 0" class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="bg-red-100 p-2 rounded-full shrink-0">
-                    <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                </div>
+        <div v-if="pendingAlerts.length > 0" class="mb-8 overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="text-red-800 font-semibold">{{ pendingAlerts.length }} Stock Alert(s) from Employees</h3>
-                    <p class="text-red-600 text-sm">Employees have reported stock issues that need attention.</p>
+                    <h3 class="text-gray-900 font-bold text-lg flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-red-600 text-xs font-black">
+                            {{ pendingAlerts.length }}
+                        </span>
+                        Action Required
+                    </h3>
+                    <p class="text-gray-500 text-xs">Verify and resolve employee reports</p>
                 </div>
             </div>
-            <div class="space-y-2">
+
+            <div class="grid gap-3">
                 <div v-for="alert in pendingAlerts" :key="alert.id || alert['@id']" 
-                     class="bg-white rounded-lg p-3 border border-red-100 flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="h-8 w-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold text-sm">
-                            {{ getProductName(alert).charAt(0).toUpperCase() }}
+                     class="group relative bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-indigo-200 transition-all duration-300">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 flex-1 min-w-0">
+                            <div class="h-12 w-12 shrink-0 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                                <span class="text-xl font-black text-gray-400 group-hover:text-indigo-600">
+                                    {{ getProductName(alert).charAt(0).toUpperCase() }}
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-gray-900 truncate leading-tight">{{ getProductName(alert) }}</h4>
+                                    <span class="px-1.5 py-0.5 rounded-md bg-red-50 text-[10px] font-bold text-red-600 uppercase tracking-wider">Reported</span>
+                                </div>
+                                <p class="text-sm text-gray-500 truncate mt-0.5 italic">"{{ alert.message || 'No specific comment provided' }}"</p>
+                                <p class="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    {{ formatAlertDate(alert.createdAt) }}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-medium text-gray-900">{{ getProductName(alert) }}</p>
-                            <p class="text-xs text-gray-500">{{ alert.message || 'No message' }} • {{ formatAlertDate(alert.createdAt) }}</p>
-                        </div>
+
+                        <!-- Modern Action Toggle -->
+                        <button 
+                            @click.stop.prevent="resolveAlert(alert)"
+                            :disabled="resolvingAlerts[alert.id || alert['@id']]"
+                            class="relative h-12 w-12 shrink-0 flex items-center justify-center rounded-2xl bg-gray-50 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 active:scale-90 transition-all duration-300 disabled:opacity-50"
+                            title="Mark as Resolved"
+                        >
+                            <svg v-if="!resolvingAlerts[alert.id || alert['@id']]" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <svg v-else class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            
+                            <!-- Success indicator ring on hover -->
+                            <div class="absolute inset-0 rounded-2xl border-2 border-transparent scale-110 group-hover:border-emerald-200 group-hover:scale-100 transition-all duration-300"></div>
+                        </button>
                     </div>
-                    <button 
-                        @click.stop.prevent="resolveAlert(alert)"
-                        :disabled="resolvingAlerts[alert.id || alert['@id']]"
-                        class="shrink-0 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer z-10"
-                        style="position: relative;"
-                    >
-                        <span v-if="resolvingAlerts[alert.id || alert['@id']]">...</span>
-                        <span v-else>✓ Resolve</span>
-                    </button>
                 </div>
             </div>
         </div>
