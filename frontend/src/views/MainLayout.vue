@@ -1,7 +1,20 @@
 <template>
   <div class="layout-container">
-    <Sidebar />
-    <main class="main-content" :class="{ 'main-content-expanded': isSidebarCollapsed }">
+    <!-- Mobile Header -->
+    <div class="mobile-header md:hidden">
+      <button @click="isMobileOpen = true" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+      <div class="font-bold text-gray-900">NatifSaaS</div>
+      <div class="w-10"></div> <!-- Placeholder for balance -->
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div v-if="isMobileOpen" @click="isMobileOpen = false" class="mobile-overlay md:hidden"></div>
+
+    <Sidebar @toggle-collapse="onSidebarToggle" :class="{ 'mobile-open': isMobileOpen }" />
+    
+    <main class="main-content" :class="{ 'main-content-collapsed': isSidebarCollapsed, 'mobile-blur': isMobileOpen }">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
@@ -16,9 +29,19 @@ import Sidebar from '../components/Sidebar.vue';
 import { ref, onMounted } from 'vue';
 
 const isSidebarCollapsed = ref(false);
+const isMobileOpen = ref(false);
 
-// We could listen to an event from Sidebar if we wanted to manage the main content margin dynamically
-// But for now, since Sidebar is fixed, we'll just use a CSS variable or a class.
+const onSidebarToggle = (collapsed) => {
+  isSidebarCollapsed.value = collapsed;
+};
+
+// Close mobile sidebar on route change
+import { watch } from 'vue';
+import { useRoute } from 'vue-router';
+const route = useRoute();
+watch(() => route.path, () => {
+  isMobileOpen.value = false;
+});
 </script>
 
 <style scoped>
@@ -31,9 +54,15 @@ const isSidebarCollapsed = ref(false);
 .main-content {
   flex: 1;
   margin-left: 260px; /* Sidebar width */
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   min-height: 100vh;
+  width: calc(100% - 260px);
+}
+
+.main-content-collapsed {
+  margin-left: 80px;
+  width: calc(100% - 80px);
 }
 
 /* Page transitions */
@@ -55,7 +84,39 @@ const isSidebarCollapsed = ref(false);
 @media (max-width: 1024px) {
   .main-content {
     margin-left: 0;
+    width: 100%;
+    padding-top: 60px; /* Space for mobile header */
   }
+}
+
+.mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 900;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 950;
+}
+
+.mobile-blur {
+  filter: blur(2px);
+  pointer-events: none;
 }
 </style>
 

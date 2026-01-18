@@ -73,7 +73,7 @@
         <span v-if="!isCollapsed">Sign Out</span>
       </button>
 
-      <button @click="isCollapsed = !isCollapsed" class="collapse-btn">
+      <button @click="toggleSidebar" class="collapse-btn">
         <svg v-if="isCollapsed" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
         </svg>
@@ -93,6 +93,12 @@ import { useRouter } from 'vue-router';
 const authStore = useAuthStore();
 const router = useRouter();
 const isCollapsed = ref(false);
+const emit = defineEmits(['toggle-collapse']);
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value;
+  emit('toggle-collapse', isCollapsed.value);
+};
 
 const userInitial = computed(() => {
   return authStore.user?.email?.charAt(0).toUpperCase() || 'U';
@@ -125,6 +131,21 @@ const handleLogout = () => {
   z-index: 1000;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 10px 0 25px -5px rgba(0, 0, 0, 0.1);
+}
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.3);
+  }
+  
+  .sidebar-collapsed {
+    width: 260px; /* Reset collapsed width on mobile */
+  }
 }
 
 .sidebar-collapsed {
