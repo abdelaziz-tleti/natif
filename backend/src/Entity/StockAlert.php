@@ -64,7 +64,7 @@ class StockAlert
     private string $status = self::STATUS_PENDING;
 
     #[ORM\Column]
-    #[Groups(['stockalert:read'])]
+    #[Groups(['stockalert:read', 'stockalert:write'])]
     private bool $resolved = false;
 
     #[ORM\Column]
