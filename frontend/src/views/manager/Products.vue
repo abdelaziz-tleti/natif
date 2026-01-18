@@ -44,9 +44,11 @@
                     </div>
                     <button 
                         @click="resolveAlert(alert)"
-                        class="shrink-0 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors"
+                        :disabled="resolvingAlerts[alert.id || alert['@id']]"
+                        class="shrink-0 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        ✓ Resolve
+                        <span v-if="resolvingAlerts[alert.id || alert['@id']]">...</span>
+                        <span v-else>✓ Resolve</span>
                     </button>
                 </div>
             </div>
@@ -249,6 +251,7 @@ import { useAuthStore } from '../../stores/auth';
 
 const products = ref([]);
 const pendingAlerts = ref([]);
+const resolvingAlerts = ref({});
 const showAddModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
@@ -362,15 +365,30 @@ const formatAlertDate = (dateStr) => {
     return date.toLocaleDateString('fr-FR');
 };
 
-const resolveAlert = async (alert) => {
+const resolveAlert = async (stockAlert) => {
+    if (!stockAlert || (!stockAlert.id && !stockAlert['@id'])) return;
+    
+    const idKey = stockAlert.id || stockAlert['@id'];
+    resolvingAlerts.value[idKey] = true;
+    
+    // Get ID from @id if id is missing
+    const alertId = stockAlert.id || stockAlert['@id'].split('/').pop();
+    
     try {
-        await api.patch(`/stock_alerts/${alert.id}`, {
+        await api.patch(`/stock_alerts/${alertId}`, {
             resolved: true,
             status: 'resolved'
+        }, {
+            headers: {
+                'Content-Type': 'application/merge-patch+json'
+            }
         });
         await fetchStockAlerts();
     } catch (e) {
         console.error('Failed to resolve alert', e);
+        window.alert('Failed to resolve alert. Please try again.');
+    } finally {
+        delete resolvingAlerts.value[idKey];
     }
 };
 
