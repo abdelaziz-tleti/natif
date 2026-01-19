@@ -21,11 +21,15 @@
         </transition>
       </router-view>
     </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <BottomNav />
   </div>
 </template>
 
 <script setup>
 import Sidebar from '../components/Sidebar.vue';
+import BottomNav from '../components/BottomNav.vue';
 import { ref, onMounted } from 'vue';
 
 const isSidebarCollapsed = ref(false);
@@ -86,6 +90,7 @@ watch(() => route.path, () => {
     margin-left: 0;
     width: 100%;
     padding-top: 60px; /* Space for mobile header */
+    padding-bottom: 80px; /* Space for bottom nav */
   }
 }
 
