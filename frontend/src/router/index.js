@@ -4,6 +4,7 @@ import Login from '../views/Login.vue';
 import Dashboard from '../views/Dashboard.vue';
 import Products from '../views/manager/Products.vue';
 import Shifts from '../views/manager/Shifts.vue';
+import Staff from '../views/manager/Staff.vue';
 import EmployeeProducts from '../views/employee/Products.vue';
 
 import MainLayout from '../views/MainLayout.vue';
@@ -35,6 +36,12 @@ const routes = [
                 path: 'manager/shifts',
                 name: 'Shifts',
                 component: Shifts,
+                meta: { roles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
+            },
+            {
+                path: 'manager/staff',
+                name: 'Staff',
+                component: Staff,
                 meta: { roles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
             },
             {

@@ -61,6 +61,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(groups: ['user:create'])]
     private ?string $plainPassword = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $lastName = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?string $phone = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['user:read', 'user:write'])]
+    private ?\DateTimeImmutable $joiningDate = null;
+
     #[ORM\ManyToOne(targetEntity: Restaurant::class)]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['user:read', 'user:write'])]
@@ -136,6 +152,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         $this->plainPassword = null;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(?string $firstName): self
+    {
+        $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): self
+    {
+        $this->lastName = $lastName;
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): self
+    {
+        $this->phone = $phone;
+        return $this;
+    }
+
+    public function getJoiningDate(): ?\DateTimeImmutable
+    {
+        return $this->joiningDate;
+    }
+
+    public function setJoiningDate(?\DateTimeImmutable $joiningDate): self
+    {
+        $this->joiningDate = $joiningDate;
+        return $this;
     }
 
     public function getRestaurant(): ?Restaurant
