@@ -24,6 +24,27 @@
 
     <!-- Mobile Bottom Navigation -->
     <BottomNav />
+
+    <!-- PWA Installation Banner -->
+    <transition name="up">
+      <div v-if="showInstallBanner" class="install-banner">
+        <div class="flex items-center gap-3">
+          <div class="bg-indigo-600 p-2 rounded-lg">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-gray-900">Install Natif App</p>
+            <p class="text-[11px] text-gray-500">{{ installMessage }}</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+            <button v-if="deferredPrompt" @click="installPWA" class="btn-install">Install</button>
+            <button @click="showInstallBanner = false" class="btn-close">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -34,9 +55,45 @@ import { ref, onMounted } from 'vue';
 
 const isSidebarCollapsed = ref(false);
 const isMobileOpen = ref(false);
+const showInstallBanner = ref(false);
+const deferredPrompt = ref(null);
+const installMessage = ref('Add this app to your home screen');
 
 const onSidebarToggle = (collapsed) => {
   isSidebarCollapsed.value = collapsed;
+};
+
+// Check if already in standalone mode
+onMounted(() => {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (!isStandalone) {
+    // Show banner after 5 seconds if not installed
+    setTimeout(() => {
+        showInstallBanner.value = true;
+    }, 5000);
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt.value = e;
+    installMessage.value = 'Get a faster app experience';
+  });
+
+  // Detect iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) {
+    installMessage.value = 'Tap Share and "Add to Home Screen"';
+  }
+});
+
+const installPWA = async () => {
+  if (!deferredPrompt.value) return;
+  deferredPrompt.value.prompt();
+  const { outcome } = await deferredPrompt.value.userChoice;
+  if (outcome === 'accepted') {
+    deferredPrompt.value = null;
+    showInstallBanner.value = false;
+  }
 };
 
 // Close mobile sidebar on route change
@@ -122,6 +179,49 @@ watch(() => route.path, () => {
 .mobile-blur {
   filter: blur(2px);
   pointer-events: none;
+}
+
+.install-banner {
+    position: fixed;
+    bottom: 80px;
+    left: 16px;
+    right: 16px;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 1100;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-install {
+    background: #6366f1;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+}
+
+.btn-close {
+    padding: 8px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    border-radius: 8px;
+    border: none;
+}
+
+/* Animations */
+.up-enter-active, .up-leave-active {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.up-enter-from, .up-leave-to {
+    opacity: 0;
+    transform: translateY(20px);
 }
 </style>
 
