@@ -66,17 +66,23 @@ const onSidebarToggle = (collapsed) => {
 // Check if already in standalone mode
 onMounted(() => {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if (!isStandalone) {
-    // Show banner after 5 seconds if not installed
-    setTimeout(() => {
-        showInstallBanner.value = true;
-    }, 5000);
+  
+  if (isStandalone) {
+    showInstallBanner.value = false;
+    return;
   }
 
+  // Show banner after 3 seconds if not installed
+  setTimeout(() => {
+    if (!isStandalone) showInstallBanner.value = true;
+  }, 3000);
+
   window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('beforeinstallprompt triggered');
     e.preventDefault();
     deferredPrompt.value = e;
-    installMessage.value = 'Get a faster app experience';
+    installMessage.value = 'Add to Home Screen for a full experience';
+    showInstallBanner.value = true;
   });
 
   // Detect iOS
