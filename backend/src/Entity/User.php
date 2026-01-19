@@ -77,7 +77,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:write'])]
     private ?\DateTimeImmutable $joiningDate = null;
 
-    #[ORM\ManyToOne(targetEntity: Restaurant::class)]
+    #[ORM\ManyToOne(targetEntity: Restaurant::class, inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['user:read', 'user:write'])]
     private ?Restaurant $restaurant = null;
