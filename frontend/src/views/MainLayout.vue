@@ -33,12 +33,13 @@
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
           </div>
           <div>
-            <p class="text-sm font-bold text-gray-900">Install Natif App</p>
-            <p class="text-[11px] text-gray-500">{{ installMessage }}</p>
+            <p class="text-sm font-bold text-gray-900">Natif Mobile App</p>
+            <p class="text-[11px] text-gray-500 leading-tight">{{ installMessage }}</p>
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2">
             <button v-if="deferredPrompt" @click="installPWA" class="btn-install">Install</button>
+            <div v-else class="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-400 font-bold uppercase">Manual</div>
             <button @click="showInstallBanner = false" class="btn-close">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -72,10 +73,18 @@ onMounted(() => {
     return;
   }
 
-  // Show banner after 3 seconds if not installed
+  // Show banner after 2 seconds if not installed
   setTimeout(() => {
-    if (!isStandalone) showInstallBanner.value = true;
-  }, 3000);
+    if (!isStandalone) {
+        showInstallBanner.value = true;
+        if (!deferredPrompt.value) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            installMessage.value = isIOS 
+                ? 'Tap Share > Add to Home Screen' 
+                : 'Tap 3-dots > Install or Add to Home Screen';
+        }
+    }
+  }, 2000);
 
   window.addEventListener('beforeinstallprompt', (e) => {
     console.log('beforeinstallprompt triggered');
