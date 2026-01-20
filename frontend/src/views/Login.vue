@@ -19,14 +19,13 @@
         
         <form @submit.prevent="handleLogin" class="space-y-5">
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1.5">Phone number</label>
             <input 
-              id="email"
-              type="email" 
-              v-model="email" 
+              id="phone"
+              type="tel" 
+              v-model="phone" 
               required
-              autocomplete="email"
-              placeholder="you@example.com"
+              placeholder="06 12 34 56 78"
               class="w-full px-4 py-3 bg-gray-100 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all placeholder:text-gray-400"
             >
           </div>
@@ -64,25 +63,19 @@
         <p class="text-white/80 font-medium mb-3">Demo Credentials</p>
         <div class="flex flex-wrap justify-center gap-2">
           <button 
-            @click="fillCredentials('admin@natif.com')" 
+            @click="fillCredentials('0101010101')" 
             class="px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white text-sm transition-all"
           >
             👑 Admin
           </button>
           <button 
-            @click="fillCredentials('manager@natif.com')" 
+            @click="fillCredentials('0606060606')" 
             class="px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white text-sm transition-all"
           >
-            🍕 Manager (Italian)
+            🍕 Manager
           </button>
           <button 
-            @click="fillCredentials('manager2@natif.com')" 
-            class="px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white text-sm transition-all"
-          >
-            🍣 Manager (Sushi)
-          </button>
-          <button 
-            @click="fillCredentials('employee@natif.com')" 
+            @click="fillCredentials('0707070707')" 
             class="px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white text-sm transition-all"
           >
             👤 Employee
@@ -101,19 +94,19 @@ import { useRouter } from 'vue-router';
 const authStore = useAuthStore();
 const router = useRouter();
 
-const email = ref('');
+const phone = ref('');
 const password = ref('');
 const error = ref('');
 
-const fillCredentials = (userEmail) => {
-  email.value = userEmail;
+const fillCredentials = (userPhone) => {
+  phone.value = userPhone;
   password.value = 'password';
 };
 
 const handleLogin = async () => {
   try {
     error.value = '';
-    await authStore.login(email.value, password.value);
+    await authStore.login(phone.value, password.value);
     router.push('/');
   } catch (err) {
     console.error(err);

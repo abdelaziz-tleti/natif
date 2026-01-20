@@ -7,6 +7,8 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -30,6 +32,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: ['groups' => ['product:write']]
 )]
 #[ApiFilter(SearchFilter::class, properties: ['restaurant' => 'exact'])]
+#[ApiFilter(RangeFilter::class, properties: ['quantity'])]
+#[ApiFilter(OrderFilter::class, properties: ['quantity', 'name'])]
 class Product
 {
     #[ORM\Id]

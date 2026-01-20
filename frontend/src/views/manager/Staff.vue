@@ -1,16 +1,15 @@
 <template>
-  <div class="p-4 md:p-8 max-w-7xl mx-auto font-sans">
-    <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+  <AppLayout>
+    <!-- Page Header -->
+    <div class="page-header">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Staff Management</h1>
-        <p class="text-gray-500 mt-1">Manage your team members and their roles.</p>
+        <h1 class="page-title">Équipe</h1>
+        <p class="page-subtitle">Gestion du personnel</p>
       </div>
-      <button @click="openAddModal" class="w-full md:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Add Staff Member
+      <button @click="openAddModal" class="btn-fab">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
       </button>
-    </header>
+    </div>
 
     <!-- Staff Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -35,7 +34,7 @@
           <div class="flex items-center gap-4">
             <div class="h-14 w-14 shrink-0 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
               <span class="text-2xl font-black text-gray-400 group-hover:text-indigo-600">
-                {{ member.firstName?.charAt(0) || member.email.charAt(0).toUpperCase() }}
+                {{ member.firstName?.charAt(0) || member.phone?.charAt(0) || 'U' }}
               </span>
             </div>
             <div class="flex-1 min-w-0">
@@ -47,10 +46,11 @@
                   {{ displayRole(member.roles) }}
                 </span>
               </div>
-              <p class="text-sm text-gray-500 truncate">{{ member.email }}</p>
-              <p v-if="member.phone" class="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                {{ member.phone }}
+              <p class="text-sm font-medium text-gray-900 truncate">{{ member.phone }}</p>
+              <p v-if="member.email" class="text-xs text-gray-500 truncate">{{ member.email }}</p>
+              <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Joined {{ formatDate(member.joiningDate) }}
               </p>
             </div>
           </div>
@@ -102,8 +102,13 @@
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
-              <input v-model="form.email" type="email" required placeholder="john@example.com" class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 outline-none transition-all font-medium" />
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Phone Number (Required)</label>
+              <input v-model="form.phone" type="tel" required placeholder="06 12 34 56 78" class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 outline-none transition-all font-medium" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Email Address (Optional)</label>
+              <input v-model="form.email" type="email" placeholder="john@example.com" class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 outline-none transition-all font-medium" />
             </div>
 
             <div v-if="!isEditing">
@@ -111,10 +116,7 @@
               <input v-model="form.plainPassword" type="password" required placeholder="••••••••" class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 outline-none transition-all font-medium" />
             </div>
 
-            <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Phone Number</label>
-              <input v-model="form.phone" type="tel" placeholder="06 12 34 56 78" class="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 outline-none transition-all font-medium" />
-            </div>
+
 
             <div>
               <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Role</label>
@@ -133,11 +135,12 @@
         </div>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import AppLayout from '../../components/AppLayout.vue';
 import api from '../../services/api';
 
 const staffList = ref([]);
@@ -234,13 +237,18 @@ const saveMember = async () => {
 };
 
 const deleteMember = async (member) => {
-  if (!confirm(`Are you sure you want to remove ${member.email}?`)) return;
+  if (!confirm(`Are you sure you want to remove ${member.phone}?`)) return;
   try {
     await api.delete(`/users/${member.id}`);
     await fetchStaff();
   } catch (e) {
     console.error('Delete failed', e);
   }
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'Recently';
+  return new Date(dateStr).toLocaleDateString();
 };
 
 onMounted(() => {

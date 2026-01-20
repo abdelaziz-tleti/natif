@@ -3,11 +3,29 @@ import api from '../services/api';
 import { jwtDecode } from "jwt-decode";
 
 export const useAuthStore = defineStore('auth', {
-    state: () => ({
-        token: localStorage.getItem('token') || null,
-        user: null, // Will hold decoded token info or user profile
-        isAuthenticated: !!localStorage.getItem('token'),
-    }),
+    state: () => {
+        const token = localStorage.getItem('token');
+        let user = null;
+
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                user = {
+                    phone: decoded.username,
+                    roles: decoded.roles
+                };
+            } catch (e) {
+                console.error("Invalid token found", e);
+                localStorage.removeItem('token');
+            }
+        }
+
+        return {
+            token: token || null,
+            user: user,
+            isAuthenticated: !!token,
+        };
+    },
     getters: {
         getUser: (state) => state.user,
         getRole: (state) => {
@@ -18,9 +36,9 @@ export const useAuthStore = defineStore('auth', {
         isManager: (state) => state.user?.roles?.includes('ROLE_MANAGER'),
     },
     actions: {
-        async login(email, password) {
+        async login(phone, password) {
             try {
-                const response = await api.post('/login_check', { email: email.trim(), password });
+                const response = await api.post('/login_check', { phone: phone.trim(), password });
                 const token = response.data.token;
                 this.token = token;
                 this.isAuthenticated = true;
@@ -29,7 +47,7 @@ export const useAuthStore = defineStore('auth', {
                 // Decode token to get user info immediately
                 const decoded = jwtDecode(token);
                 this.user = {
-                    email: decoded.username,
+                    phone: decoded.username,
                     roles: decoded.roles
                 };
 

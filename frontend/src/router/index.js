@@ -6,6 +6,8 @@ import Products from '../views/manager/Products.vue';
 import Shifts from '../views/manager/Shifts.vue';
 import Staff from '../views/manager/Staff.vue';
 import EmployeeProducts from '../views/employee/Products.vue';
+import EmployeeShifts from '../views/employee/Shifts.vue';
+import Notifications from '../views/Notifications.vue';
 
 import MainLayout from '../views/MainLayout.vue';
 
@@ -48,6 +50,16 @@ const routes = [
                 path: 'employee/stock',
                 name: 'EmployeeStock',
                 component: EmployeeProducts
+            },
+            {
+                path: 'employee/shifts',
+                name: 'EmployeeShifts',
+                component: EmployeeShifts
+            },
+            {
+                path: 'notifications',
+                name: 'Notifications',
+                component: Notifications
             }
         ]
     },

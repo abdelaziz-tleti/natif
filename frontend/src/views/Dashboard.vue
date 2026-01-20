@@ -1,209 +1,231 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Top Navigation Bar -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo -->
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-              </svg>
-            </div>
-            <span class="font-bold text-xl text-gray-900 hidden sm:block">RestoPOS</span>
-          </div>
-          
-          <!-- User Menu -->
-          <div class="flex items-center gap-3">
-            <div class="hidden sm:block text-right">
-              <p class="text-sm font-medium text-gray-900">{{ user?.email }}</p>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" :class="roleBadgeClass">
-                {{ roleLabel }}
-              </span>
-            </div>
-            <button 
-              @click="logout" 
-              class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-              title="Logout"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Welcome Banner -->
-      <div class="mb-8">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Welcome back! 👋</h1>
-        <p class="text-gray-500 mt-1">Here's what's happening with your restaurant today.</p>
+  <AppLayout>
+    <div class="dashboard-content">
+      <!-- Welcome -->
+      <div class="welcome">
+        <h1 class="title">Bonjour 👋</h1>
+        <p class="subtitle">{{ greeting }}</p>
       </div>
 
-      <!-- Quick Stats (Mobile Horizontal Scroll) -->
-      <div class="flex gap-4 overflow-x-auto pb-4 mb-8 snap-x snap-mandatory scrollbar-hide">
-        <div class="min-w-[160px] snap-start bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg shadow-indigo-200">
-          <p class="text-indigo-100 text-sm font-medium">Total Products</p>
-          <p class="text-3xl font-bold mt-1">24</p>
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">{{ stats.products }}</div>
+          <div class="stat-label">Produits</div>
         </div>
-        <div class="min-w-[160px] snap-start bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg shadow-amber-200">
-          <p class="text-amber-100 text-sm font-medium">Low Stock</p>
-          <p class="text-3xl font-bold mt-1">3</p>
+        <div class="stat stat-warning">
+          <div class="stat-value">{{ stats.lowStock }}</div>
+          <div class="stat-label">Alertes</div>
         </div>
-        <div class="min-w-[160px] snap-start bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl p-5 text-white shadow-lg shadow-emerald-200">
-          <p class="text-emerald-100 text-sm font-medium">Employees</p>
-          <p class="text-3xl font-bold mt-1">8</p>
+        <div class="stat">
+          <div class="stat-value">{{ stats.employees }}</div>
+          <div class="stat-label">Équipe</div>
         </div>
-        <div class="min-w-[160px] snap-start bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-5 text-white shadow-lg shadow-purple-200">
-          <p class="text-purple-100 text-sm font-medium">Shifts Today</p>
-          <p class="text-3xl font-bold mt-1">5</p>
+        <div class="stat">
+          <div class="stat-value">{{ stats.shifts }}</div>
+          <div class="stat-label">Planning</div>
         </div>
       </div>
 
-      <!-- Feature Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        <!-- Admin Section -->
-        <div v-if="isAdmin" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-          <div class="h-2 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-          <div class="p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 bg-blue-100 rounded-xl">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              </div>
-              <h2 class="text-xl font-bold text-gray-900">Admin Controls</h2>
-            </div>
-            <ul class="space-y-3">
-              <li class="flex items-center gap-3 text-gray-600 hover:text-blue-600 cursor-pointer transition-colors">
-                <span class="text-lg">🏢</span> Manage Restaurants
-              </li>
-              <li class="flex items-center gap-3 text-gray-600 hover:text-blue-600 cursor-pointer transition-colors">
-                <span class="text-lg">👥</span> Manage Global Users
-              </li>
-              <li class="flex items-center gap-3 text-gray-600 hover:text-blue-600 cursor-pointer transition-colors">
-                <span class="text-lg">📊</span> View System Reports
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Manager Section -->
-        <div v-if="isAdmin || isManager" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-          <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-          <div class="p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 bg-emerald-100 rounded-xl">
-                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-              </div>
-              <h2 class="text-xl font-bold text-gray-900">Manager Area</h2>
-            </div>
-            <ul class="space-y-3">
-              <li>
-                <router-link 
-                  to="/manager/products" 
-                  class="flex items-center gap-3 text-gray-600 hover:text-emerald-600 transition-colors group"
-                >
-                  <span class="text-lg">📦</span> 
-                  <span class="group-hover:translate-x-1 transition-transform">Manage Inventory</span>
-                  <svg class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </router-link>
-              </li>
-              <li>
-                <router-link 
-                  to="/manager/shifts" 
-                  class="flex items-center gap-3 text-gray-600 hover:text-emerald-600 transition-colors group"
-                >
-                  <span class="text-lg">📅</span> 
-                  <span class="group-hover:translate-x-1 transition-transform">Schedule Shifts</span>
-                  <svg class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </router-link>
-              </li>
-              <li class="flex items-center gap-3 text-gray-400 cursor-not-allowed">
-                <span class="text-lg">👥</span> Manage Employees <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">Soon</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Employee Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-          <div class="h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-          <div class="p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 bg-purple-100 rounded-xl">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-              </div>
-              <h2 class="text-xl font-bold text-gray-900">My Workspace</h2>
-            </div>
-            <ul class="space-y-3">
-              <li class="flex items-center gap-3 text-gray-400 cursor-not-allowed">
-                <span class="text-lg">📅</span> View My Planning <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">Soon</span>
-              </li>
-              <li>
-                <router-link 
-                  to="/employee/stock" 
-                  class="flex items-center gap-3 text-gray-600 hover:text-purple-600 transition-colors group"
-                >
-                  <span class="text-lg">⚠️</span> 
-                  <span class="group-hover:translate-x-1 transition-transform">Report Stock Issue</span>
-                  <svg class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </router-link>
-              </li>
-              <li class="flex items-center gap-3 text-gray-400 cursor-not-allowed">
-                <span class="text-lg">🔔</span> View Notifications <span class="text-xs bg-gray-100 px-2 py-0.5 rounded">Soon</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
+      <!-- Actions -->
+      <div class="actions">
+        <router-link 
+          v-for="action in quickActions" 
+          :key="action.path"
+          :to="action.path"
+          class="action"
+        >
+          <span class="action-icon" v-html="action.icon"></span>
+          <span class="action-title">{{ action.title }}</span>
+          <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </router-link>
       </div>
-    </main>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
-import { useRouter } from 'vue-router';
+import AppLayout from '../components/AppLayout.vue';
+import api from '../services/api';
 
 const authStore = useAuthStore();
-const router = useRouter();
 
-const user = computed(() => authStore.user);
-const isAdmin = computed(() => authStore.isAdmin);
-const isManager = computed(() => authStore.isManager);
-
-const roleLabel = computed(() => {
-  if (authStore.isAdmin) return 'Administrator';
-  if (authStore.isManager) return 'Manager';
-  return 'Employee';
+const stats = ref({
+  products: 0,
+  lowStock: 0,
+  employees: 0,
+  shifts: 0
 });
 
-const roleBadgeClass = computed(() => {
-  if (authStore.isAdmin) return 'bg-blue-100 text-blue-800';
-  if (authStore.isManager) return 'bg-emerald-100 text-emerald-800';
-  return 'bg-purple-100 text-purple-800';
+const greeting = computed(() => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bonne matinée';
+  if (hour < 18) return 'Bon après-midi';
+  return 'Bonne soirée';
 });
 
-const logout = () => {
-  authStore.logout();
-  router.push('/login');
+const icons = {
+  box: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>',
+  calendar: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+  users: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>',
+  alert: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+  bell: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>'
 };
+
+const quickActions = computed(() => {
+  const actions = [];
+  
+  if (authStore.isManager || authStore.isAdmin) {
+    actions.push(
+      { path: '/manager/products', title: 'Stock', icon: icons.box },
+      { path: '/manager/shifts', title: 'Planning', icon: icons.calendar },
+      { path: '/manager/staff', title: 'Équipe', icon: icons.users }
+    );
+  } else {
+    actions.push(
+      { path: '/employee/shifts', title: 'Planning', icon: icons.calendar },
+      { path: '/employee/stock', title: 'Alertes', icon: icons.alert },
+      { path: '/notifications', title: 'Notifications', icon: icons.bell }
+    );
+  }
+  
+  return actions;
+});
+
+const fetchStats = async () => {
+  try {
+    const [prodRes, userRes, shiftRes] = await Promise.all([
+      api.get('/products'),
+      api.get('/users'),
+      api.get('/shifts')
+    ]);
+
+    const prods = prodRes.data['hydra:member'] || [];
+    stats.value.products = prodRes.data['hydra:totalItems'] || prods.length;
+    stats.value.lowStock = prods.filter(p => p.quantity <= p.minThreshold).length;
+    stats.value.employees = userRes.data['hydra:totalItems'] || (userRes.data['hydra:member'] || []).length;
+    
+    const today = new Date().toDateString();
+    const shifts = shiftRes.data['hydra:member'] || [];
+    stats.value.shifts = shifts.filter(s => new Date(s.startTime).toDateString() === today).length;
+  } catch (e) {
+    console.error("Failed to fetch stats", e);
+  }
+};
+
+onMounted(() => {
+  fetchStats();
+});
 </script>
 
 <style scoped>
-/* Hide scrollbar for Chrome, Safari and Opera */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+.welcome {
+  text-align: left;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #111827;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 4px 0 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #f3f4f6;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: #111827;
+  margin: 0;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-warning .stat-value {
+  color: #f59e0b;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #f3f4f6;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.action:active {
+  transform: scale(0.98);
+  background: #f9fafb;
+}
+
+.action-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #6b7280;
+}
+
+.action-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.action-arrow {
+  width: 18px;
+  height: 18px;
+  color: #d1d5db;
+  flex-shrink: 0;
 }
 </style>

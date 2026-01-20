@@ -80,5 +80,12 @@ final class CurrentUserRestaurantExtension implements QueryCollectionExtensionIn
         // Filter by restaurant
         $queryBuilder->andWhere(sprintf('%s.restaurant = :current_restaurant', $rootAlias))
             ->setParameter('current_restaurant', $restaurant);
+
+        // Special case for employees: they should only see their own shifts
+        if (Shift::class === $resourceClass && !in_array('ROLE_MANAGER', $user->getRoles(), true)) {
+            $queryBuilder->innerJoin(sprintf('%s.users', $rootAlias), 'u')
+                ->andWhere('u.id = :current_user_id')
+                ->setParameter('current_user_id', $user->getId());
+        }
     }
 }

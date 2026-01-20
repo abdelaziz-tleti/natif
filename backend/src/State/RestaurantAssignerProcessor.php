@@ -38,19 +38,20 @@ final class RestaurantAssignerProcessor implements ProcessorInterface
             return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
         }
 
-        // If the entity doesn't already have a restaurant assigned, use the current user's
+        // If the entity already has a restaurant assigned, don't override it (allows Admins to select one)
         $currentRestaurant = null;
-
         if ($data instanceof Product) {
             $currentRestaurant = $data->getRestaurant();
         } elseif ($data instanceof Shift) {
-            // For Shift, the restaurant comes from the employee
-            // But we can also directly assign if the entity supports it
             $currentRestaurant = $data->getRestaurant();
         }
 
-        // If no restaurant is set, assign from current user
-        if ($currentRestaurant === null && $user->getRestaurant() !== null) {
+        if ($currentRestaurant !== null) {
+            return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        }
+
+        // If no restaurant is set, assign from current user if they have one
+        if ($user->getRestaurant() !== null) {
             if ($data instanceof Product) {
                 $data->setRestaurant($user->getRestaurant());
             } elseif ($data instanceof Shift) {

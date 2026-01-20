@@ -1,20 +1,15 @@
 <template>
-  <div class="p-4 md:p-8 max-w-7xl mx-auto font-sans">
-    <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+  <AppLayout>
+    <!-- Page Header -->
+    <div class="page-header">
       <div>
-        <router-link to="/" class="inline-flex items-center text-sm text-gray-500 hover:text-indigo-600 mb-2 transition-colors">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Dashboard
-        </router-link>
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Inventory Management</h1>
-        <p class="text-gray-500 mt-1">Manage your restaurant's stock levels efficiently.</p>
+        <h1 class="page-title">Inventaire</h1>
+        <p class="page-subtitle">Gestion du stock</p>
       </div>
-      <button @click="showAddModal = true" class="w-full md:w-auto btn-primary bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Add Product
+      <button @click="showAddModal = true" class="btn-fab">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
       </button>
-    </header>
+    </div>
 
     <!-- Employee Stock Alerts (Modern Checklist) -->
     <transition name="fade">
@@ -231,6 +226,15 @@
               </div>
               
               <div class="space-y-5">
+                <div v-if="authStore.isAdmin && restaurants.length > 0">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Restaurant</label>
+                  <select v-model="form.restaurant" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 bg-gray-50">
+                    <option value="">Select a restaurant...</option>
+                    <option v-for="res in restaurants" :key="res.id" :value="res['@id']">
+                      {{ res.name }}
+                    </option>
+                  </select>
+                </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                   <input v-model="form.name" type="text" required class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5 bg-gray-50" placeholder="e.g. Tomatoes">
@@ -264,15 +268,17 @@
         </div>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import AppLayout from '../../components/AppLayout.vue';
 import api from '../../services/api';
 import { useAuthStore } from '../../stores/auth';
 
 const products = ref([]);
+const restaurants = ref([]);
 const pendingAlerts = ref([]);
 const resolvingAlerts = ref({});
 const showAddModal = ref(false);
@@ -284,7 +290,8 @@ const form = ref({
   name: '',
   quantity: 0,
   minThreshold: 5,
-  supplier: ''
+  supplier: '',
+  restaurant: ''
 });
 
 const lowStockProducts = computed(() => {
@@ -304,50 +311,55 @@ const fetchProducts = async () => {
     }
 };
 
+const fetchRestaurants = async () => {
+    if (!authStore.isAdmin) return;
+    try {
+        const response = await api.get('/restaurants');
+        restaurants.value = response.data['hydra:member'] || [];
+    } catch (e) {
+        console.error("Failed to fetch restaurants", e);
+    }
+};
+
 const closeModal = () => {
   showAddModal.value = false;
   isEditing.value = false;
   editingId.value = null;
-  form.value = { name: '', quantity: 0, minThreshold: 5, supplier: '' };
+  form.value = { name: '', quantity: 0, minThreshold: 5, supplier: '', restaurant: '' };
 };
 
 const openEdit = (product) => {
-  form.value = { ...product };
   editingId.value = product.id;
   isEditing.value = true;
+  form.value = {
+    name: product.name,
+    quantity: product.quantity,
+    minThreshold: product.minThreshold,
+    supplier: product.supplier || '',
+    restaurant: product.restaurant?.['@id'] || product.restaurant || ''
+  };
   showAddModal.value = true;
 };
 
 const saveProduct = async () => {
   try {
-    // We need to associate the product with the restaurant.
-    // Ideally the backend handles this based on the logged in user.
-    // For now, if we are Admin, we might need to specify restaurant.
-    // If Manager, the backend should auto-set it.
-    // PROVISIONAL: We will assume backend handles it OR we fetch current user's restaurant ID.
-    // For this step, I'll send the data as is.
+    const payload = { ...form.value };
     
-    // NOTE: Backend needs to support creation. If "restaurant" is a required field, this might fail 
-    // without a custom processor or passing the global IRI.
-    // Let's rely on the backend "UserContext" logic I'm about to write.
-    
+    // Clear restaurant if empty string (for non-admins or if not selected)
+    if (!payload.restaurant) delete payload.restaurant;
+
     if (isEditing.value) {
-      await api.put(`/products/${editingId.value}`, form.value);
+      await api.put(`/products/${editingId.value}`, payload);
     } else {
-        // We need to pass the restaurant IRI if the backend doesn't infer it yet.
-        // Let's pass a placeholder if we haven't implemented the inference yet.
-        // To be safe, let's fetch the current user's profile to get their restaurant IRI first?
-        // Actually, let's just try sending it. If it fails 400/422, we know why.
-        
-        // For smoother UX, let's assume I'll fix the backend immediately after this.
-        await api.post('/products', form.value);
+      await api.post('/products', payload);
     }
     
     await fetchProducts();
     closeModal();
   } catch (e) {
     console.error("Save failed", e);
-    alert("Failed to save. Ensure you are linked to a restaurant.");
+    const errorMsg = e.response?.data?.['hydra:description'] || e.response?.data?.message || "Failed to save product.";
+    alert("Error: " + errorMsg);
   }
 };
 
@@ -426,6 +438,7 @@ const resolveAlert = async (stockAlert) => {
 onMounted(() => {
     fetchProducts();
     fetchStockAlerts();
+    fetchRestaurants();
 });
 </script>
 

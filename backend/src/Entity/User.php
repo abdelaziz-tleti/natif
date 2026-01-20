@@ -38,8 +38,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
-    #[Assert\NotBlank]
+    #[ORM\Column(length: 180, unique: true, nullable: true)]
     #[Assert\Email]
     #[Groups(['user:read', 'user:write'])]
     private ?string $email = null;
@@ -69,7 +68,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:write'])]
     private ?string $lastName = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 20, unique: true)]
+    #[Assert\NotBlank]
     #[Groups(['user:read', 'user:write'])]
     private ?string $phone = null;
 
@@ -93,7 +93,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(?string $email): static
     {
         $this->email = $email;
 
@@ -102,7 +102,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->phone;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getUsername(): string
+    {
+        return (string) $this->phone;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getSalt(): ?string
+    {
+        return null;
     }
 
     /**
